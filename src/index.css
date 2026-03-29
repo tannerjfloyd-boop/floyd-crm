@@ -1,46 +1,108 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: 0 0% 100%;
-  --color-foreground: 222.2 84% 4.9%;
-  --color-card: 0 0% 100%;
-  --color-card-foreground: 222.2 84% 4.9%;
-  --color-popover: 0 0% 100%;
-  --color-popover-foreground: 222.2 84% 4.9%;
-  --color-primary: 221.2 83.2% 53.3%;
-  --color-primary-foreground: 210 40% 98%;
-  --color-secondary: 210 40% 96.1%;
-  --color-secondary-foreground: 222.2 47.4% 11.2%;
-  --color-muted: 210 40% 96.1%;
-  --color-muted-foreground: 215.4 16.3% 46.9%;
-  --color-accent: 210 40% 96.1%;
-  --color-accent-foreground: 222.2 47.4% 11.2%;
-  --color-destructive: 0 84.2% 60.2%;
-  --color-destructive-foreground: 210 40% 98%;
-  --color-border: 214.3 31.8% 91.4%;
-  --color-input: 214.3 31.8% 91.4%;
-  --color-ring: 221.2 83.2% 53.3%;
+  /* Dark-first color system */
+  --color-background: 222 84% 5%;
+  --color-foreground: 0 0% 100%;
+  --color-card: 222 47% 11%;
+  --color-card-foreground: 0 0% 100%;
+  --color-popover: 222 47% 11%;
+  --color-popover-foreground: 0 0% 100%;
+  --color-primary: 160 84% 39%;
+  --color-primary-foreground: 0 0% 100%;
+  --color-secondary: 217 33% 17%;
+  --color-secondary-foreground: 213 31% 91%;
+  --color-muted: 217 33% 17%;
+  --color-muted-foreground: 215 16% 47%;
+  --color-accent: 217 33% 17%;
+  --color-accent-foreground: 213 31% 91%;
+  --color-destructive: 0 72% 51%;
+  --color-destructive-foreground: 0 0% 100%;
+  --color-border: 215 25% 27%;
+  --color-input: 217 33% 17%;
+  --color-ring: 160 84% 39%;
   --radius: 0.5rem;
 }
 
 .dark {
-  --color-background: 222.2 84% 4.9%;
-  --color-foreground: 210 40% 98%;
-  --color-card: 222.2 84% 4.9%;
-  --color-card-foreground: 210 40% 98%;
-  --color-popover: 222.2 84% 4.9%;
-  --color-popover-foreground: 210 40% 98%;
-  --color-primary: 217.2 91.2% 59.8%;
-  --color-primary-foreground: 222.2 47.4% 11.2%;
-  --color-secondary: 217.2 32.6% 17.5%;
-  --color-secondary-foreground: 210 40% 98%;
-  --color-muted: 217.2 32.6% 17.5%;
-  --color-muted-foreground: 215 20.2% 65.1%;
-  --color-accent: 217.2 32.6% 17.5%;
-  --color-accent-foreground: 210 40% 98%;
-  --color-destructive: 0 62.8% 30.6%;
-  --color-destructive-foreground: 210 40% 98%;
-  --color-border: 217.2 32.6% 17.5%;
-  --color-input: 217.2 32.6% 17.5%;
-  --color-ring: 224.3 76.3% 48%;
+  --color-background: 222 84% 5%;
+  --color-foreground: 0 0% 100%;
+  --color-card: 222 47% 11%;
+  --color-card-foreground: 0 0% 100%;
+  --color-popover: 222 47% 11%;
+  --color-popover-foreground: 0 0% 100%;
+  --color-primary: 160 84% 39%;
+  --color-primary-foreground: 0 0% 100%;
+  --color-secondary: 217 33% 17%;
+  --color-secondary-foreground: 213 31% 91%;
+  --color-muted: 217 33% 17%;
+  --color-muted-foreground: 215 16% 47%;
+  --color-accent: 217 33% 17%;
+  --color-accent-foreground: 213 31% 91%;
+  --color-destructive: 0 72% 51%;
+  --color-destructive-foreground: 0 0% 100%;
+  --color-border: 215 25% 27%;
+  --color-input: 217 33% 17%;
+  --color-ring: 160 84% 39%;
+}
+
+/* Base */
+html {
+  scroll-behavior: smooth;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  background-color: #020617;
+  color: #ffffff;
+}
+
+/* Transitions on interactive elements */
+a, button, input, select, textarea, [role="button"] {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 150ms;
+  transition-timing-function: ease;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Selection */
+::selection {
+  background-color: rgba(16, 185, 129, 0.25);
+  color: #fff;
+}
+
+/* Dark select options */
+select option {
+  background-color: #1e293b;
+  color: #ffffff;
+}
+
+/* Date picker icon */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.5) brightness(1.5);
+  cursor: pointer;
+}
+
+/* Checkbox */
+input[type="checkbox"] {
+  accent-color: #10b981;
+  cursor: pointer;
 }

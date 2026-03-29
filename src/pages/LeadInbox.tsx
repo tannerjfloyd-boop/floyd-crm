@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 import type { DropResult } from '@hello-pangea/dnd'
-import { Card, CardContent } from '../components/ui/Card'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { formatCurrency, formatDate } from '../lib/utils'
@@ -11,13 +10,21 @@ import { Calendar, Plus, Loader2, X } from 'lucide-react'
 
 const stages = ['New', 'Contacted', 'Pre-Approved', 'Under Contract', 'Closed', 'Lost'] as const
 
-const temperatureColors = {
-  hot: '🔴',
-  warm: '🟡',
-  cold: '🟢',
+const temperatureBorder: Record<string, string> = {
+  hot:  'border-l-rose-500',
+  warm: 'border-l-amber-500',
+  cold: 'border-l-emerald-500',
+}
+
+const temperatureVariant: Record<string, 'danger' | 'warning' | 'success'> = {
+  hot:  'danger',
+  warm: 'warning',
+  cold: 'success',
 }
 
 const LOAN_TYPES = ['Purchase', 'Refinance', 'Cash-Out Refi', 'HELOC', 'VA IRRRL', 'FHA Streamline', 'USDA', 'Construction']
+
+const inputCls = "w-full rounded-lg border border-slate-700/50 bg-slate-800 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/50"
 
 export function LeadInbox() {
   const [leads, setLeads] = useState<Lead[]>([])
@@ -94,7 +101,7 @@ export function LeadInbox() {
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center py-20">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
       </div>
     )
   }
@@ -103,8 +110,8 @@ export function LeadInbox() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Lead Inbox</h1>
-          <p className="text-muted-foreground">Drag and drop leads to update their stage</p>
+          <h1 className="text-2xl font-bold text-white" style={{ letterSpacing: '-0.025em' }}>Lead Inbox</h1>
+          <p className="mt-0.5 text-sm text-slate-400">Drag and drop leads to update their stage</p>
         </div>
         <Button onClick={openModal}>
           <Plus className="mr-2 h-4 w-4" />
@@ -113,157 +120,132 @@ export function LeadInbox() {
       </div>
 
       <DragDropContext onDragEnd={onDragEnd}>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-          {stages.map((stage) => (
-            <div key={stage} className="flex flex-col">
-              <div className="mb-3 flex items-center justify-between">
-                <h3 className="font-semibold">{stage}</h3>
-                <Badge variant="secondary">{getLeadsByStage(stage).length}</Badge>
-              </div>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          {stages.map((stage) => {
+            const stageLeads = getLeadsByStage(stage)
+            return (
+              <div key={stage} className="flex flex-col">
+                {/* Column header */}
+                <div className="mb-2 flex items-center justify-between px-1">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">{stage}</h3>
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-slate-800 px-1.5 text-xs font-medium text-slate-400">
+                    {stageLeads.length}
+                  </span>
+                </div>
 
-              <Droppable droppableId={stage}>
-                {(provided, snapshot) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className={`flex-1 space-y-2 rounded-lg p-2 transition-colors ${
-                      snapshot.isDraggingOver ? 'bg-accent' : 'bg-muted/20'
-                    }`}
-                  >
-                    {getLeadsByStage(stage).map((lead, index) => (
-                      <Draggable key={lead.id} draggableId={lead.id} index={index}>
-                        {(provided, snapshot) => (
-                          <Card
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            className={`cursor-pointer transition-shadow ${
-                              snapshot.isDragging ? 'shadow-lg' : ''
-                            } ${expandedLead === lead.id ? 'ring-2 ring-primary' : ''}`}
-                            onClick={() => setExpandedLead(expandedLead === lead.id ? null : lead.id)}
-                          >
-                            <CardContent className="p-3">
-                              <div className="space-y-2">
-                                <div className="flex items-start justify-between">
-                                  <h4 className="font-medium text-sm">{lead.contact_name}</h4>
-                                  <span className="text-lg">{temperatureColors[lead.temperature]}</span>
+                <Droppable droppableId={stage}>
+                  {(provided, snapshot) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      className={`min-h-[120px] flex-1 space-y-2 rounded-xl border p-2 transition-colors ${
+                        snapshot.isDraggingOver
+                          ? 'border-emerald-500/20 bg-slate-800/60'
+                          : 'border-slate-700/20 bg-slate-900/40'
+                      }`}
+                    >
+                      {stageLeads.map((lead, index) => (
+                        <Draggable key={lead.id} draggableId={lead.id} index={index}>
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              onClick={() => setExpandedLead(expandedLead === lead.id ? null : lead.id)}
+                              className={`cursor-pointer rounded-lg border-l-2 border border-slate-700/30 bg-slate-800 transition-all ${
+                                temperatureBorder[lead.temperature]
+                              } ${snapshot.isDragging ? 'shadow-xl shadow-black/40 ring-1 ring-slate-600/50' : ''} ${
+                                expandedLead === lead.id ? 'ring-1 ring-emerald-500/30' : ''
+                              }`}
+                            >
+                              <div className="p-3 space-y-2">
+                                <div className="flex items-start justify-between gap-2">
+                                  <h4 className="text-sm font-medium text-white leading-snug">{lead.contact_name}</h4>
+                                  <Badge variant={temperatureVariant[lead.temperature]} className="shrink-0">
+                                    {lead.temperature}
+                                  </Badge>
                                 </div>
 
-                                <div className="text-xs text-muted-foreground">
+                                <div className="space-y-0.5 text-xs text-slate-400">
                                   <p>{lead.loan_type}</p>
-                                  <p className="font-semibold text-foreground">{formatCurrency(lead.loan_amount)}</p>
+                                  <p className="font-semibold text-slate-200">{formatCurrency(lead.loan_amount)}</p>
                                 </div>
 
-                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                  <Calendar className="h-3 w-3" />
+                                <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                                  <Calendar className="h-3 w-3 shrink-0" />
                                   {formatDate(lead.next_follow_up)}
                                 </div>
 
                                 {expandedLead === lead.id && (
-                                  <div className="mt-3 space-y-1 border-t pt-2 text-xs">
-                                    <p><span className="font-medium">Source:</span> {lead.lead_source}</p>
-                                    <p><span className="font-medium">Created:</span> {formatDate(lead.created_at)}</p>
-                                    <p><span className="font-medium">Temperature:</span> {lead.temperature}</p>
+                                  <div className="space-y-1 border-t border-slate-700/30 pt-2 text-xs">
+                                    <p><span className="text-slate-500">Source:</span> <span className="text-slate-300">{lead.lead_source}</span></p>
+                                    <p><span className="text-slate-500">Created:</span> <span className="text-slate-300">{formatDate(lead.created_at)}</span></p>
                                   </div>
                                 )}
                               </div>
-                            </CardContent>
-                          </Card>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </div>
-          ))}
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </div>
+            )
+          })}
         </div>
       </DragDropContext>
 
       {/* New Lead Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <Card className="w-full max-w-md mx-4">
-            <div className="flex items-center justify-between p-6 pb-0">
-              <h2 className="text-xl font-semibold">New Lead</h2>
-              <button onClick={() => setShowModal(false)} className="text-muted-foreground hover:text-foreground">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="mx-4 w-full max-w-md rounded-xl border border-slate-700/30 bg-slate-900 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-700/20 px-6 py-4">
+              <h2 className="text-lg font-semibold text-white">New Lead</h2>
+              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white">
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <CardContent className="p-6 space-y-4">
+            <div className="space-y-4 p-6">
               <div>
-                <label className="text-sm font-medium mb-2 block">Contact</label>
-                <select
-                  value={form.contact_id}
-                  onChange={(e) => setForm({ ...form, contact_id: e.target.value })}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                >
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-slate-400">Contact</label>
+                <select value={form.contact_id} onChange={(e) => setForm({ ...form, contact_id: e.target.value })} className={inputCls}>
                   <option value="">Select a contact...</option>
-                  {contacts.map(c => (
-                    <option key={c.id} value={c.id}>{c.full_name}</option>
-                  ))}
+                  {contacts.map(c => <option key={c.id} value={c.id}>{c.full_name}</option>)}
                 </select>
               </div>
-
               <div>
-                <label className="text-sm font-medium mb-2 block">Loan Type</label>
-                <select
-                  value={form.loan_type}
-                  onChange={(e) => setForm({ ...form, loan_type: e.target.value })}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                >
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-slate-400">Loan Type</label>
+                <select value={form.loan_type} onChange={(e) => setForm({ ...form, loan_type: e.target.value })} className={inputCls}>
                   {LOAN_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
-
               <div>
-                <label className="text-sm font-medium mb-2 block">Loan Amount</label>
-                <input
-                  type="number"
-                  value={form.loan_amount}
-                  onChange={(e) => setForm({ ...form, loan_amount: e.target.value })}
-                  placeholder="350000"
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                />
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-slate-400">Loan Amount</label>
+                <input type="number" value={form.loan_amount} onChange={(e) => setForm({ ...form, loan_amount: e.target.value })} placeholder="350000" className={inputCls} />
               </div>
-
               <div>
-                <label className="text-sm font-medium mb-2 block">Temperature</label>
-                <select
-                  value={form.temperature}
-                  onChange={(e) => setForm({ ...form, temperature: e.target.value })}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                >
-                  <option value="hot">🔴 Hot</option>
-                  <option value="warm">🟡 Warm</option>
-                  <option value="cold">🟢 Cold</option>
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-slate-400">Temperature</label>
+                <select value={form.temperature} onChange={(e) => setForm({ ...form, temperature: e.target.value })} className={inputCls}>
+                  <option value="hot">Hot</option>
+                  <option value="warm">Warm</option>
+                  <option value="cold">Cold</option>
                 </select>
               </div>
-
               <div>
-                <label className="text-sm font-medium mb-2 block">Next Follow-up</label>
-                <input
-                  type="date"
-                  value={form.next_follow_up}
-                  onChange={(e) => setForm({ ...form, next_follow_up: e.target.value })}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                />
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-slate-400">Next Follow-up</label>
+                <input type="date" value={form.next_follow_up} onChange={(e) => setForm({ ...form, next_follow_up: e.target.value })} className={inputCls} />
               </div>
-
-              <div className="flex gap-2 pt-2">
-                <Button
-                  onClick={handleCreateLead}
-                  disabled={saving || !form.contact_id || !form.loan_amount}
-                  className="flex-1"
-                >
+              <div className="flex gap-2 pt-1">
+                <Button onClick={handleCreateLead} disabled={saving || !form.contact_id || !form.loan_amount} className="flex-1">
                   {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Create Lead
                 </Button>
                 <Button variant="outline" onClick={() => setShowModal(false)}>Cancel</Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       )}
     </div>
