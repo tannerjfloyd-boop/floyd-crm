@@ -1,6 +1,6 @@
 -- Floyd CRM — Supabase Schema v2
 -- Incorporates: LO workflow validation + Sentinel security hardening
--- Instance: sqqlawadxemgywbddssl.supabase.co
+-- Instance: bydszlmaizuygrineiuu.supabase.co
 -- Run this in Supabase SQL Editor
 
 -- ============================================================
