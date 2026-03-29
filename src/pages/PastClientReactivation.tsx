@@ -1,18 +1,27 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Card, CardContent } from '../components/ui/Card'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { formatCurrency, formatDate } from '../lib/utils'
-import { mockPastClients } from '../lib/mockData'
-import type { PastClient } from '../lib/mockData'
-import { Check } from 'lucide-react'
+import * as api from '../lib/api'
+import type { PastClient } from '../lib/api'
+import { Check, Loader2 } from 'lucide-react'
 
 export function PastClientReactivation() {
-  const [clients] = useState<PastClient[]>(mockPastClients)
+  const [clients, setClients] = useState<PastClient[]>([])
+  const [loading, setLoading] = useState(true)
   const [refiEligibleOnly, setRefiEligibleOnly] = useState(false)
   const [minEquity, setMinEquity] = useState(0)
   const [lastContactedBefore, setLastContactedBefore] = useState('')
   const [selectedClients, setSelectedClients] = useState<Set<string>>(new Set())
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    api.getPastClients()
+      .then(setClients)
+      .catch(err => console.error('Failed to load past clients:', err))
+      .finally(() => setLoading(false))
+  }, [])
 
   const filteredClients = useMemo(() => {
     return clients.filter(client => {
@@ -28,17 +37,44 @@ export function PastClientReactivation() {
 
   const toggleClientSelection = (id: string) => {
     const newSelected = new Set(selectedClients)
-    if (newSelected.has(id)) {
-      newSelected.delete(id)
-    } else {
-      newSelected.add(id)
-    }
+    if (newSelected.has(id)) newSelected.delete(id)
+    else newSelected.add(id)
     setSelectedClients(newSelected)
   }
 
-  const handleBatchMarkContacted = () => {
-    alert(`Marking ${selectedClients.size} clients as contacted`)
-    setSelectedClients(new Set())
+  const handleBatchMarkContacted = async () => {
+    setSaving(true)
+    const today = new Date().toISOString().split('T')[0]
+    try {
+      await Promise.all(
+        Array.from(selectedClients).map(id =>
+          api.updatePastClient(id, {
+            reactivation_status: 'Contacted',
+            last_reactivation_attempt: today,
+          })
+        )
+      )
+      setClients(prev =>
+        prev.map(c =>
+          selectedClients.has(c.id)
+            ? { ...c, reactivation_status: 'Contacted' as const, last_contacted: today }
+            : c
+        )
+      )
+      setSelectedClients(new Set())
+    } catch (err) {
+      console.error('Failed to update clients:', err)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    )
   }
 
   return (
@@ -100,7 +136,8 @@ export function PastClientReactivation() {
               <span className="text-sm font-medium">
                 {selectedClients.size} client{selectedClients.size !== 1 ? 's' : ''} selected
               </span>
-              <Button onClick={handleBatchMarkContacted}>
+              <Button onClick={handleBatchMarkContacted} disabled={saving}>
+                {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Mark as Contacted
               </Button>
             </div>
@@ -127,6 +164,13 @@ export function PastClientReactivation() {
                 </tr>
               </thead>
               <tbody>
+                {filteredClients.length === 0 && (
+                  <tr>
+                    <td colSpan={9} className="p-8 text-center text-muted-foreground text-sm">
+                      No past clients found
+                    </td>
+                  </tr>
+                )}
                 {filteredClients.map((client) => (
                   <tr key={client.id} className="border-b hover:bg-muted/50">
                     <td className="p-4">
@@ -155,20 +199,17 @@ export function PastClientReactivation() {
                     <td className="p-4">
                       <Badge
                         variant={
-                          client.reactivation_status === 'Not Contacted'
-                            ? 'outline'
-                            : client.reactivation_status === 'Contacted'
-                            ? 'secondary'
-                            : client.reactivation_status === 'Scheduled'
-                            ? 'default'
-                            : 'destructive'
+                          client.reactivation_status === 'Not Contacted' ? 'outline'
+                          : client.reactivation_status === 'Contacted' ? 'secondary'
+                          : client.reactivation_status === 'Scheduled' ? 'default'
+                          : 'destructive'
                         }
                       >
                         {client.reactivation_status}
                       </Badge>
                     </td>
                     <td className="p-4">
-                      <div className="flex gap-1">
+                      <div className="flex gap-1 flex-wrap">
                         {client.life_events.map((event, index) => (
                           <Badge key={index} variant="outline" className="text-xs">
                             {event}
